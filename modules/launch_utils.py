@@ -253,6 +253,9 @@ def prepare_environment():
 
     os.makedirs(dir_repos, exist_ok=True)
 
+    if not os.path.exists('/tmp/gradio'):
+        os.makedirs('/tmp/gradio')
+
     def task_install_gfpgan():
         if not is_installed("gfpgan"):
             run_pip(f"install {gfpgan_package}", "gfpgan")
