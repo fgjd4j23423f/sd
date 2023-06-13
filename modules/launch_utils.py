@@ -6,6 +6,7 @@ import importlib.util
 import platform
 import json
 from functools import lru_cache
+import threading
 
 from modules import cmd_args
 from modules.paths_internal import script_path, extensions_dir
@@ -250,65 +251,70 @@ def prepare_environment():
     print(f"Version: {tag}")
     print(f"Commit hash: {commit}")
 
-    if args.reinstall_torch or not is_installed("torch") or not is_installed("torchvision"):
-        run(f'"{python}" -m {torch_command}', "Installing torch and torchvision", "Couldn't install torch", live=True)
+    os.makedirs(dir_repos, exist_ok=True)
 
-    if not args.skip_torch_cuda_test and not check_run_python("import torch; assert torch.cuda.is_available()"):
-        raise RuntimeError(
-            'Torch is not able to use GPU; '
-            'add --skip-torch-cuda-test to COMMANDLINE_ARGS variable to disable this check'
-        )
+    def task_install_gfpgan():
+        if not is_installed("gfpgan"):
+            run_pip(f"install {gfpgan_package}", "gfpgan")
 
-    if not is_installed("gfpgan"):
-        run_pip(f"install {gfpgan_package}", "gfpgan")
+    def task_install_clip():
+        if not is_installed("clip"):
+            run_pip(f"install {clip_package}", "clip")
 
-    if not is_installed("clip"):
-        run_pip(f"install {clip_package}", "clip")
+    def task_install_open_clip():
+        if not is_installed("open_clip"):
+            run_pip(f"install {openclip_package}", "open_clip")
 
-    if not is_installed("open_clip"):
-        run_pip(f"install {openclip_package}", "open_clip")
+    def task_clone_stable_diffusion_repo():
+        git_clone(stable_diffusion_repo, repo_dir('stable-diffusion-stability-ai'), "Stable Diffusion",
+                  stable_diffusion_commit_hash)
 
-    if (not is_installed("xformers") or args.reinstall_xformers) and args.xformers:
-        if platform.system() == "Windows":
-            if platform.python_version().startswith("3.10"):
-                run_pip(f"install -U -I --no-deps {xformers_package}", "xformers", live=True)
-            else:
-                print("Installation of xformers is not supported in this version of Python.")
-                print("You can also check this and build manually: https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Xformers#building-xformers-on-windows-by-duckness")
-                if not is_installed("xformers"):
-                    exit(0)
-        elif platform.system() == "Linux":
-            run_pip(f"install -U -I --no-deps {xformers_package}", "xformers")
+    def task_clone_repos():
+        git_clone(taming_transformers_repo, repo_dir('taming-transformers'), "Taming Transformers",
+                  taming_transformers_commit_hash)
+        git_clone(k_diffusion_repo, repo_dir('k-diffusion'), "K-diffusion", k_diffusion_commit_hash)
+        git_clone(blip_repo, repo_dir('BLIP'), "BLIP", blip_commit_hash)
 
-    if not is_installed("ngrok") and args.ngrok:
-        run_pip("install ngrok", "ngrok")
+    def task_install_codeformer_requirements():
+        git_clone(codeformer_repo, repo_dir('CodeFormer'), "CodeFormer", codeformer_commit_hash)
+        if not is_installed("lpips"):
+            run_pip(f"install -r {os.path.join(repo_dir('CodeFormer'), 'requirements.txt')}",
+                    "requirements for CodeFormer")
 
-    os.makedirs(os.path.join(script_path, dir_repos), exist_ok=True)
+    def task_install_webui_requirements():
+        run_pip(f"install -r {requirements_file}", "requirements for Web UI")
 
-    git_clone(stable_diffusion_repo, repo_dir('stable-diffusion-stability-ai'), "Stable Diffusion", stable_diffusion_commit_hash)
-    git_clone(taming_transformers_repo, repo_dir('taming-transformers'), "Taming Transformers", taming_transformers_commit_hash)
-    git_clone(k_diffusion_repo, repo_dir('k-diffusion'), "K-diffusion", k_diffusion_commit_hash)
-    git_clone(codeformer_repo, repo_dir('CodeFormer'), "CodeFormer", codeformer_commit_hash)
-    git_clone(blip_repo, repo_dir('BLIP'), "BLIP", blip_commit_hash)
+    def task_download_lora():
+        import subprocess
+        subprocess.run(
+            'git lfs install && git clone --depth 1 --jobs 3 https://huggingface.co/zoto-ff/Lora /content/sd/models/Lora --quiet > /dev/null',
+            shell=True)
 
-    if not is_installed("lpips"):
-        run_pip(f"install -r \"{os.path.join(repo_dir('CodeFormer'), 'requirements.txt')}\"", "requirements for CodeFormer")
+    try:
+        tasks = [
+            task_install_gfpgan,
+            task_install_clip,
+            task_install_open_clip,
+            task_clone_stable_diffusion_repo,
+            task_clone_repos,
+            task_install_codeformer_requirements,
+            task_download_lora
+        ]
 
-    if not os.path.isfile(requirements_file):
-        requirements_file = os.path.join(script_path, requirements_file)
-    run_pip(f"install -r \"{requirements_file}\"", "requirements")
+        t = []
+        for task in tasks:
+            task = threading.Thread(target=task)
+            task.start()
+            t.append(task)
 
-    run_extensions_installers(settings_file=args.ui_settings_file)
+        for task in t:
+            task.join()
 
-    if args.update_check:
-        version_check(commit)
-
-    if args.update_all_extensions:
-        git_pull_recursive(extensions_dir)
-
-    if "--exit" in sys.argv:
-        print("Exiting because of --exit argument")
-        exit(0)
+        task_install_webui_requirements()
+    except RuntimeError:
+        print('похуй')
+    except Exception as e:
+        print(e)
 
 
 def configure_for_tests():
