@@ -406,6 +406,12 @@ def webui():
         if cmd_opts.add_stop_route:
             app.add_route("/_stop", stop_route, methods=["POST"])
 
+        if cmd_opts.cloudflared:
+            from pycloudflared import try_cloudflare
+            port = cmd_opts.port or 7860
+            tunnel_url = try_cloudflare(port=port, verbose=False).tunnel
+            print(f'Cloudflared public URL: {tunnel_url}')
+
         # after initial launch, disable --autolaunch for subsequent restarts
         cmd_opts.autolaunch = False
 
