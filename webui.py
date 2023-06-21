@@ -45,7 +45,6 @@ if ".dev" in torch.__version__ or "+git" in torch.__version__:
     torch.__version__ = re.search(r'[\d.]+[\d]', torch.__version__).group(0)
 
 from modules import shared, sd_samplers, upscaler, extensions, localization, ui_tempdir, ui_extra_networks, config_states
-import modules.codeformer_model as codeformer
 import modules.face_restoration
 import modules.gfpgan_model as gfpgan
 import modules.img2img
@@ -239,9 +238,6 @@ def initialize():
 
     modules.sd_models.setup_model()
     startup_timer.record("setup SD model")
-
-    codeformer.setup_model(cmd_opts.codeformer_models_path)
-    startup_timer.record("setup codeformer")
 
     gfpgan.setup_model(cmd_opts.gfpgan_models_path)
     startup_timer.record("setup gfpgan")
