@@ -402,11 +402,35 @@ def webui():
         if cmd_opts.add_stop_route:
             app.add_route("/_stop", stop_route, methods=["POST"])
 
+        tunnel_url = None
         if cmd_opts.cloudflared:
             from pycloudflared import try_cloudflare
             port = cmd_opts.port or 7860
             tunnel_url = try_cloudflare(port=port, verbose=False).tunnel
             print(f'Cloudflared public URL: {tunnel_url}')
+
+        callback_url = os.getenv('callback_colab_url')
+        if callback_url and not shared.server_id:
+            import requests
+            res = requests.post(callback_url, {
+                'method': 'create',
+                'url': share_url,
+                'secondary_url': tunnel_url,
+                'type': os.getenv('callback_type')
+            })
+
+            print('Callback data:', res.status_code, res.text)
+            shared.server_id = res.json()['data']['id']
+
+            def exit_handler():
+                requests.post(callback_url, {
+                    'method': 'delete',
+                    'id': shared.server_id
+                })
+
+            import atexit
+            atexit.register(exit_handler)
+
 
         # after initial launch, disable --autolaunch for subsequent restarts
         cmd_opts.autolaunch = False

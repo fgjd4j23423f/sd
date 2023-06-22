@@ -19,6 +19,7 @@ from ldm.models.diffusion.ddpm import LatentDiffusion
 from typing import Optional
 
 demo = None
+server_id = None
 
 parser = cmd_args.parser
 
