@@ -422,15 +422,6 @@ def webui():
             print('Callback data:', res.status_code, res.text)
             shared.server_id = res.json()['data']['id']
 
-            def exit_handler():
-                requests.post(callback_url, {
-                    'method': 'delete',
-                    'id': shared.server_id
-                })
-
-            import atexit
-            atexit.register(exit_handler)
-
 
         # after initial launch, disable --autolaunch for subsequent restarts
         cmd_opts.autolaunch = False
