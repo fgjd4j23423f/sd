@@ -355,6 +355,10 @@ def stop_route(request):
     return Response("Stopping.")
 
 
+def status_route(request):
+    return Response("ok")
+
+
 def webui():
     launch_api = cmd_opts.api
     initialize()
@@ -399,8 +403,11 @@ def webui():
             prevent_thread_lock=True,
             allowed_paths=cmd_opts.gradio_allowed_path,
         )
+
         if cmd_opts.add_stop_route:
             app.add_route("/_stop", stop_route, methods=["POST"])
+
+        app.add_route("/status", status_route, methods=["GET", "POST"])
 
         tunnel_url = None
         if cmd_opts.cloudflared:
