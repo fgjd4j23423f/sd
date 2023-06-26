@@ -414,8 +414,8 @@ def webui():
             import requests
             res = requests.post(callback_url, {
                 'method': 'create',
-                'url': share_url,
-                'secondary_url': tunnel_url,
+                'gradio_url': share_url,
+                'cloudflared_url': tunnel_url,
                 'type': os.getenv('callback_type')
             })
 
