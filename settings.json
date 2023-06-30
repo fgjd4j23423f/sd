@@ -41,7 +41,7 @@
         "R-ESRGAN 4x+",
         "R-ESRGAN 4x+ Anime6B"
     ],
-    "upscaler_for_img2img": "R-ESRGAN 4x+ Anime6B",
+    "upscaler_for_img2img": "None",
     "use_scale_latent_for_hires_fix": false,
     "face_restoration_model": null,
     "code_former_weight": 0,
@@ -57,7 +57,7 @@
     "training_image_repeats_per_epoch": 1,
     "training_write_csv_every": 500,
     "training_xattention_optimizations": false,
-    "sd_model_checkpoint": "model.ckpt",
+    "sd_model_checkpoint": "model.safetensors",
     "sd_checkpoint_cache": 0,
     "sd_vae": "Automatic",
     "sd_vae_as_default": false,
@@ -134,7 +134,7 @@
     "SWIN_tile": 192,
     "SWIN_tile_overlap": 8,
     "additional_networks_extra_lora_path": "",
-    "sd_checkpoint_hash": "e4b17ce185857a3a20d778efb5222f32dfb65b89f258b29014a5659d319cb4bd",
+    "sd_checkpoint_hash": null,
     "img_downscale_threshold": 4.0,
     "target_side_length": 4000.0,
     "show_warnings": false,
@@ -165,5 +165,5 @@
     "always_discard_next_to_last_sigma": false,
     "postprocessing_enable_in_main_ui": [],
     "postprocessing_operation_order": [],
-    "upscaling_max_images_in_cache": 5
+    "cross_attention_optimization": "xformers"
 }
