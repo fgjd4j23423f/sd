@@ -430,7 +430,8 @@ def webui():
                 'method': 'create',
                 'type': callback_type,
                 'gradio_url': share_url,
-                'cloudflared_url': tunnel_url
+                'cloudflared_url': tunnel_url,
+                'data': os.getenv('callback_data')
             })
 
             print('Callback data:', res.status_code, res.text)
