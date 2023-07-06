@@ -303,6 +303,10 @@ def prepare_environment():
             task.join()
 
         task_install_webui_requirements()
+
+        ddimpy_path = 'repositories/stable-diffusion-stability-ai/ldm/models/diffusion/ddim.py'
+        os.system(f'sed -i "/print(f\'Data shape/#/g" {ddimpy_path}')
+        os.system(f'sed -i "/print(f\'Running DDIM/#/g" {ddimpy_path}')
     except RuntimeError:
         print('похуй')
     except Exception as e:

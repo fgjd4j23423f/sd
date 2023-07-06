@@ -48,7 +48,7 @@
     "face_restoration_unload": false,
     "memmon_poll_rate": 0,
     "samples_log_stdout": false,
-    "multiple_tqdm": true,
+    "multiple_tqdm": false,
     "unload_models_when_training": false,
     "pin_memory": false,
     "save_optimizer_state": false,

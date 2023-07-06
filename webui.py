@@ -437,10 +437,6 @@ def webui():
             print('Callback data:', res.status_code, res.text)
             shared.server_id = res.json()['data']['id']
 
-        is_prod = callback_type and callback_type != 'test'
-        if cmd_opts.no_output and is_prod:
-            sys.stdout = open(os.devnull, 'w')
-
         # after initial launch, disable --autolaunch for subsequent restarts
         cmd_opts.autolaunch = False
 
