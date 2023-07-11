@@ -422,13 +422,11 @@ def webui():
             tunnel_url = try_cloudflare(port=port, verbose=False).tunnel
             print(f'Cloudflared public URL: {tunnel_url}')
 
-        callback_type = os.getenv('callback_type')
         callback_url = os.getenv('callback_colab_url')
         if callback_url and not shared.server_id:
             import requests
             res = requests.post(callback_url, {
                 'method': 'create',
-                'type': callback_type,
                 'gradio_url': share_url,
                 'cloudflared_url': tunnel_url,
                 'data': os.getenv('callback_data')
