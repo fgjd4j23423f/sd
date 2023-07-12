@@ -427,13 +427,17 @@ def webui():
             data = {
                 'method': 'create',
                 'gradio_url': share_url,
-                'cloudflared_url': tunnel_url
+                'cloudflared_url': tunnel_url,
+                'model': os.getenv('callback_model')
             }
 
             extra_data = os.getenv('callback_data')
             if extra_data:
                 extra_data = json.loads(extra_data)
                 data = dict(list(data.items()) + list(extra_data.items()))
+
+                if data['model']:
+                    data['type'] = data['type'].replace('_'+data['model'], '')
 
             import requests
             res = requests.post(callback_url, data)
