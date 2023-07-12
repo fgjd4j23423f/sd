@@ -423,17 +423,21 @@ def webui():
             print(f'Cloudflared public URL: {tunnel_url}')
 
         callback_url = os.getenv('callback_colab_url')
-        if callback_url and not shared.server_id:
-            import requests
-            res = requests.post(callback_url, {
+        if callback_url:
+            data = {
                 'method': 'create',
                 'gradio_url': share_url,
-                'cloudflared_url': tunnel_url,
-                'data': os.getenv('callback_data')
-            })
+                'cloudflared_url': tunnel_url
+            }
 
+            extra_data = os.getenv('callback_data')
+            if extra_data:
+                extra_data = json.loads(extra_data)
+                data = dict(list(data.items()) + list(extra_data.items()))
+
+            import requests
+            res = requests.post(callback_url, data)
             print('Callback data:', res.status_code, res.text)
-            shared.server_id = res.json()['data']['id']
 
         # after initial launch, disable --autolaunch for subsequent restarts
         cmd_opts.autolaunch = False
